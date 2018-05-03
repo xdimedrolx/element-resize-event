@@ -35,6 +35,13 @@ function resizeListener(e) {
   })
 }
 
+function getWindow(element) {
+  if (element.contentDocument && element.contentDocument.defaultView) {
+    return element.contentDocument.defaultView
+  }
+  return element.contentWindow
+}
+
 var exports = function exports(element, fn) {
   var window = this
   var document = window.document
@@ -47,8 +54,9 @@ var exports = function exports(element, fn) {
   }
 
   function objectLoad() {
-    this.contentDocument.defaultView.__resizeTrigger__ = this.__resizeElement__
-    this.contentDocument.defaultView.addEventListener('resize', resizeListener)
+    var window = getWindow(this)
+    window.__resizeTrigger__ = this.__resizeElement__
+    window.addEventListener('resize', resizeListener)
   }
 
   if (!element.__resizeListeners__) {
@@ -97,11 +105,12 @@ module.exports.unbind = function (element, fn) {
     if (attachEvent) {
       element.detachEvent('onresize', resizeListener)
     } else {
-      element.__resizeTrigger__.contentDocument.defaultView.removeEventListener(
+      var window = getWindow(element.__resizeTrigger__)
+      window.removeEventListener(
         'resize',
         resizeListener
       )
-      delete element.__resizeTrigger__.contentDocument.defaultView.__resizeTrigger__
+      delete window.__resizeTrigger__
       element.__resizeTrigger__ = !element.removeChild(
         element.__resizeTrigger__
       )
